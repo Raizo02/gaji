@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Gaji Input Nombor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            transition: background-color 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Kalkulator Gaji Input Nombor</h1>
+        <p class="text-center text-gray-600 mb-8">Masukkan gaji Anda dan peratusan pembahagian yang diingini.</p>
+
+        <div class="mb-6">
+            <label for="gaji" class="block text-sm font-medium text-gray-700 mb-2">Gaji Bulanan (RM)</label>
+            <input type="number" id="gaji" placeholder="Masukkan jumlah gaji" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+        </div>
+        
+        <div class="space-y-6 mb-6">
+            <div>
+                <label for="inputKomitmen" class="block text-sm font-medium text-gray-700 mb-2">Komitmen (%)</label>
+                <input type="number" id="inputKomitmen" min="0" max="100" value="50" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+            </div>
+            
+            <div>
+                <label for="inputSimpanan" class="block text-sm font-medium text-gray-700 mb-2">Simpanan (%)</label>
+                <input type="number" id="inputSimpanan" min="0" max="100" value="20" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+            </div>
+            
+            <div>
+                <label for="inputBelanja" class="block text-sm font-medium text-gray-700 mb-2">Perbelanjaan (%)</label>
+                <input type="number" id="inputBelanja" min="0" max="100" value="30" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+            </div>
+            
+            <div id="jumlahPeratusan" class="text-center text-sm font-medium mt-4">
+                Jumlah Peratusan: <span id="labelJumlah" class="text-gray-700 font-bold">100%</span>
+            </div>
+        </div>
+
+        <div id="hasil" class="space-y-4">
+            <!-- Hasil akan ditampilkan di sini -->
+        </div>
+
+    </div>
+
+    <script>
+        const inputGaji = document.getElementById('gaji');
+        const inputKomitmen = document.getElementById('inputKomitmen');
+        const inputSimpanan = document.getElementById('inputSimpanan');
+        const inputBelanja = document.getElementById('inputBelanja');
+        const labelJumlah = document.getElementById('labelJumlah');
+        const divHasil = document.getElementById('hasil');
+
+        // Fungsi utama untuk mengemas kini semua pengiraan dan paparan
+        function updateSemua() {
+            // Dapatkan nilai dari input nombor
+            const gaji = parseFloat(inputGaji.value);
+            const pKomitmen = parseFloat(inputKomitmen.value) || 0;
+            const pSimpanan = parseFloat(inputSimpanan.value) || 0;
+            const pBelanja = parseFloat(inputBelanja.value) || 0;
+            
+            // Kira jumlah peratusan
+            const totalPeratusan = pKomitmen + pSimpanan + pBelanja;
+            labelJumlah.textContent = ${totalPeratusan}%;
+
+            // Atur warna label berdasarkan jumlah peratusan
+            if (totalPeratusan !== 100) {
+                labelJumlah.classList.remove('text-gray-700', 'text-green-600');
+                labelJumlah.classList.add('text-red-500');
+            } else {
+                labelJumlah.classList.remove('text-red-500');
+                labelJumlah.classList.add('text-green-600');
+            }
+
+            // Lakukan pengiraan hanya jika gaji dan jumlah peratusan adalah sah
+            if (isNaN(gaji) || gaji <= 0 || totalPeratusan !== 100) {
+                divHasil.innerHTML = `
+                    <p class="text-center text-red-500 font-semibold">Sila pastikan jumlah peratusan adalah 100% dan gaji dimasukkan.</p>
+                `;
+                return;
+            }
+
+            // Kira jumlah dalam RM
+            const komitmen = gaji * (pKomitmen / 100);
+            const simpanan = gaji * (pSimpanan / 100);
+            const belanja = gaji * (pBelanja / 100);
+
+            // Paparkan hasil
+            divHasil.innerHTML = `
+                <div class="flex justify-between items-center p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <span class="text-base font-semibold text-gray-800">Komitmen (${pKomitmen}%)</span>
+                    <span class="text-xl font-bold text-blue-600">RM ${komitmen.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between items-center p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <span class="text-base font-semibold text-gray-800">Simpanan (${pSimpanan}%)</span>
+                    <span class="text-xl font-bold text-green-600">RM ${simpanan.toFixed(2)}</span>
+                </div>
+                <div class="flex justify-between items-center p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <span class="text-base font-semibold text-gray-800">Perbelanjaan (${pBelanja}%)</span>
+                    <span class="text-xl font-bold text-yellow-600">RM ${belanja.toFixed(2)}</span>
+                </div>
+            `;
+        }
+        
+        // Tambah event listener untuk setiap input
+        inputGaji.addEventListener('input', updateSemua);
+        inputKomitmen.addEventListener('input', updateSemua);
+        inputSimpanan.addEventListener('input', updateSemua);
+        inputBelanja.addEventListener('input', updateSemua);
+
+        // Pengiraan awal apabila halaman dimuat
+        updateSemua();
+    </script>
+</body>
+</html>
