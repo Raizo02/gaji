@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulator Gaji Input Nombor</title>
+    <title>Gaji</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
@@ -12,13 +12,20 @@
             background-color: #f3f4f6;
             transition: background-color 0.3s ease;
         }
+        .balance-box {
+            background-color: #fff;
+            border: 1px solid #e5e7eb;
+        }
+        .balance-box:nth-of-type(1) { border-color: #60a5fa; }
+        .balance-box:nth-of-type(2) { border-color: #4ade80; }
+        .balance-box:nth-of-type(3) { border-color: #fde047; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-lg">
-        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Kalkulator Gaji Input Nombor</h1>
-        <p class="text-center text-gray-600 mb-8">Masukkan gaji Anda dan peratusan pembahagian yang diingini.</p>
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Kalkulator Gaji Berincian</h1>
+        <p class="text-center text-gray-600 mb-8">Masukkan gaji, bahagi peratusan, catat perbelanjaan, dan uruskan baki.</p>
 
         <div class="mb-6">
             <label for="gaji" class="block text-sm font-medium text-gray-700 mb-2">Gaji Bulanan (RM)</label>
@@ -47,7 +54,7 @@
         </div>
 
         <div id="hasil" class="space-y-4">
-            <!-- Hasil akan ditampilkan di sini -->
+            <!-- Hasil dan kotak perbelanjaan akan dipaparkan di sini -->
         </div>
 
     </div>
@@ -60,57 +67,183 @@
         const labelJumlah = document.getElementById('labelJumlah');
         const divHasil = document.getElementById('hasil');
 
-        // Fungsi utama untuk mengemas kini semua pengiraan dan paparan
+        // State untuk menyimpan baki dan item perbelanjaan
+        let baki = {
+            komitmen: 0,
+            simpanan: 0,
+            belanja: 0
+        };
+        let items = {
+            komitmen: [],
+            simpanan: [],
+            belanja: []
+        };
+
+        // Fungsi untuk memaparkan mesej ralat khusus untuk setiap bahagian
+        function showSectionError(categoryId, message) {
+            const errorElement = document.getElementById(`error-message-${categoryId}`);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
+        }
+
+        // Fungsi untuk menyembunyikan mesej ralat khusus
+        function hideSectionError(categoryId) {
+            const errorElement = document.getElementById(`error-message-${categoryId}`);
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
+        }
+
         function updateSemua() {
-            // Dapatkan nilai dari input nombor
-            const gaji = parseFloat(inputGaji.value);
+            const gaji = parseFloat(inputGaji.value) || 0;
             const pKomitmen = parseFloat(inputKomitmen.value) || 0;
             const pSimpanan = parseFloat(inputSimpanan.value) || 0;
             const pBelanja = parseFloat(inputBelanja.value) || 0;
             
-            // Kira jumlah peratusan
             const totalPeratusan = pKomitmen + pSimpanan + pBelanja;
-            labelJumlah.textContent = ${totalPeratusan}%;
+            labelJumlah.textContent = `${totalPeratusan}%`;
 
-            // Atur warna label berdasarkan jumlah peratusan
             if (totalPeratusan !== 100) {
                 labelJumlah.classList.remove('text-gray-700', 'text-green-600');
                 labelJumlah.classList.add('text-red-500');
+                divHasil.innerHTML = `<p class="text-center text-red-500 font-semibold">Sila pastikan jumlah peratusan adalah 100%.</p>`;
+                return;
             } else {
                 labelJumlah.classList.remove('text-red-500');
                 labelJumlah.classList.add('text-green-600');
             }
 
-            // Lakukan pengiraan hanya jika gaji dan jumlah peratusan adalah sah
-            if (isNaN(gaji) || gaji <= 0 || totalPeratusan !== 100) {
-                divHasil.innerHTML = `
-                    <p class="text-center text-red-500 font-semibold">Sila pastikan jumlah peratusan adalah 100% dan gaji dimasukkan.</p>
-                `;
+            if (gaji <= 0) {
+                divHasil.innerHTML = '';
                 return;
             }
 
-            // Kira jumlah dalam RM
-            const komitmen = gaji * (pKomitmen / 100);
-            const simpanan = gaji * (pSimpanan / 100);
-            const belanja = gaji * (pBelanja / 100);
+            // Inisialisasi baki awal berdasarkan gaji
+            baki.komitmen = gaji * (pKomitmen / 100);
+            baki.simpanan = gaji * (pSimpanan / 100);
+            baki.belanja = gaji * (pBelanja / 100);
 
-            // Paparkan hasil
-            divHasil.innerHTML = `
-                <div class="flex justify-between items-center p-4 rounded-lg bg-gray-50 border border-gray-200">
-                    <span class="text-base font-semibold text-gray-800">Komitmen (${pKomitmen}%)</span>
-                    <span class="text-xl font-bold text-blue-600">RM ${komitmen.toFixed(2)}</span>
-                </div>
-                <div class="flex justify-between items-center p-4 rounded-lg bg-gray-50 border border-gray-200">
-                    <span class="text-base font-semibold text-gray-800">Simpanan (${pSimpanan}%)</span>
-                    <span class="text-xl font-bold text-green-600">RM ${simpanan.toFixed(2)}</span>
-                </div>
-                <div class="flex justify-between items-center p-4 rounded-lg bg-gray-50 border border-gray-200">
-                    <span class="text-base font-semibold text-gray-800">Perbelanjaan (${pBelanja}%)</span>
-                    <span class="text-xl font-bold text-yellow-600">RM ${belanja.toFixed(2)}</span>
+            // Tolak perbelanjaan yang telah dicatat sebelumnya
+            items.komitmen.forEach(item => baki.komitmen -= item.price);
+            items.simpanan.forEach(item => baki.simpanan -= item.price);
+            items.belanja.forEach(item => baki.belanja -= item.price);
+
+            renderHasil();
+        }
+
+        function renderHasil() {
+            const categories = [
+                { id: 'komitmen', title: 'Komitmen', color: 'blue-600' },
+                { id: 'simpanan', title: 'Simpanan', color: 'green-600' },
+                { id: 'belanja', title: 'Perbelanjaan', color: 'yellow-600' }
+            ];
+
+            // Hitung total baki
+            const totalBaki = baki.komitmen + baki.simpanan + baki.belanja;
+
+            let htmlContent = '';
+
+            categories.forEach(cat => {
+                const itemListHtml = items[cat.id].map((item, index) => `
+                    <li class="flex justify-between items-center bg-gray-100 p-2 rounded-md">
+                        <span>${item.name}</span>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-semibold text-gray-600">- RM ${item.price.toFixed(2)}</span>
+                            <button class="delete-btn text-red-500 font-bold hover:text-red-700" data-category="${cat.id}" data-index="${index}">
+                                <!-- Font Awesome Icon for Trash Can -->
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="h-4 w-4 fill-current"><path d="M135.2 170.5l-32 32c-6.2 6.2-6.2 16.4 0 22.6l160 160c6.2 6.2 16.4 6.2 22.6 0l160-160c6.2-6.2 6.2-16.4 0-22.6l-32-32c-6.2-6.2-16.4-6.2-22.6 0L224 290.7 157.8 224c-6.2-6.2-16.4-6.2-22.6 0zM384 80c0-17.7-14.3-32-32-32H96C78.3 48 64 62.3 64 80s14.3 32 32 32h256c17.7 0 32-14.3 32-32z"/></svg>
+                            </button>
+                        </div>
+                    </li>
+                `).join('');
+
+                htmlContent += `
+                    <div class="p-4 rounded-lg shadow-md balance-box">
+                        <div class="mb-4">
+                            <span class="text-base font-semibold text-gray-800">${cat.title}</span>
+                            <div class="text-2xl font-bold text-${cat.color}">RM <span id="balance-${cat.id}">${baki[cat.id].toFixed(2)}</span></div>
+                        </div>
+                        
+                        <!-- Borang untuk tambah item -->
+                        <div class="space-y-2 mb-4">
+                            <input type="text" id="item-name-${cat.id}" placeholder="Nama item" class="w-full p-2 text-sm rounded-lg border border-gray-300">
+                            <div class="flex items-center space-x-2">
+                                <input type="number" id="item-price-${cat.id}" placeholder="Harga" class="w-full p-2 text-sm rounded-lg border border-gray-300">
+                                <button id="add-btn-${cat.id}" class="bg-${cat.color} text-white px-4 py-2 rounded-lg text-sm font-semibold transition-transform duration-200 hover:scale-105">Tambah</button>
+                            </div>
+                        </div>
+                        <div id="error-message-${cat.id}" class="text-red-500 text-sm mt-2 hidden"></div>
+
+                        <!-- Senarai item perbelanjaan -->
+                        <ul id="list-${cat.id}" class="text-sm text-gray-700 space-y-2">
+                            ${itemListHtml}
+                        </ul>
+                    </div>
+                `;
+            });
+
+            // Tambah jumlah baki keseluruhan di bawah sekali
+            htmlContent += `
+                <div class="mt-6 p-4 rounded-lg bg-gray-100 shadow-inner text-center font-bold text-gray-700">
+                    Baki Keseluruhan: <span class="text-green-600">RM ${totalBaki.toFixed(2)}</span>
                 </div>
             `;
+            
+            divHasil.innerHTML = htmlContent;
+            
+            // Tambah event listeners untuk butang tambah
+            categories.forEach(cat => {
+                document.getElementById(`add-btn-${cat.id}`).addEventListener('click', () => addItem(cat.id));
+            });
+
+            // Tambah event listener untuk butang buang
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const categoryId = event.currentTarget.dataset.category;
+                    const itemIndex = parseInt(event.currentTarget.dataset.index);
+                    deleteItem(categoryId, itemIndex);
+                });
+            });
         }
-        
+
+        function addItem(categoryId) {
+            hideSectionError(categoryId);
+            const itemNameInput = document.getElementById(`item-name-${categoryId}`);
+            const itemPriceInput = document.getElementById(`item-price-${categoryId}`);
+
+            const itemName = itemNameInput.value.trim();
+            const itemPrice = parseFloat(itemPriceInput.value);
+
+            if (itemName === '' || isNaN(itemPrice) || itemPrice <= 0) {
+                showSectionError(categoryId, 'Sila masukkan nama item dan harga yang sah.');
+                return;
+            }
+            
+            // Semak jika harga melebihi baki
+            if (itemPrice > baki[categoryId]) {
+                showSectionError(categoryId, `Harga item melebihi baki yang ada.`);
+                return;
+            }
+
+            // Tolak harga dari baki dan tambah item ke senarai
+            baki[categoryId] -= itemPrice;
+            items[categoryId].push({ name: itemName, price: itemPrice });
+
+            // Kosongkan input dan render semula
+            itemNameInput.value = '';
+            itemPriceInput.value = '';
+            renderHasil();
+        }
+
+        function deleteItem(categoryId, itemIndex) {
+            hideSectionError(categoryId);
+            const deletedItem = items[categoryId].splice(itemIndex, 1)[0];
+            baki[categoryId] += deletedItem.price;
+            renderHasil();
+        }
+
         // Tambah event listener untuk setiap input
         inputGaji.addEventListener('input', updateSemua);
         inputKomitmen.addEventListener('input', updateSemua);
