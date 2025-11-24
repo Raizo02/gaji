@@ -186,11 +186,11 @@
                         </div>
                         <h2 class="text-lg font-bold text-slate-800">Financial Analysis</h2>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-64">
-                        <div class="relative w-full h-full flex items-center justify-center">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-center">
+                        <div class="relative w-full max-w-[360px] mx-auto h-[260px] sm:h-[300px] lg:h-[340px]">
                             <canvas id="pieChart"></canvas>
                         </div>
-                        <div class="relative w-full h-full">
+                        <div class="relative w-full h-[260px] sm:h-[300px] lg:h-[340px]">
                             <canvas id="barChart"></canvas>
                         </div>
                     </div>
@@ -461,7 +461,13 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         cutout: '60%',
-                        plugins: { legend: { position: 'bottom' } }
+                        layout: { padding: 8 },
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { boxWidth: 14, boxHeight: 14, padding: 12 }
+                            }
+                        }
                     }
                 });
             }
@@ -489,8 +495,14 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        layout: { padding: 8 },
                         scales: { y: { beginAtZero: true } },
-                        plugins: { legend: { position: 'bottom' } }
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { boxWidth: 14, boxHeight: 14, padding: 12 }
+                            }
+                        }
                     }
                 });
             }
