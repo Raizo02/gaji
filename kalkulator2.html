@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gaji</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Remove number input arrows for cleaner look */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-slate-50 text-slate-800 font-sans p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+
+        <!-- Header Section -->
+        <div
+            class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-indigo-900 text-white p-6 rounded-2xl shadow-lg">
+            <div>
+                <h1 class="text-3xl font-bold">Dashboard Gaji</h1>
+                <p class="text-indigo-200 text-sm">Overview for <span id="current-month">November</span> 2025</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                <div class="bg-indigo-800/50 p-3 rounded-lg border border-indigo-700">
+                    <label class="text-xs text-indigo-300 block mb-1">Gaji Bersih (RM)</label>
+                    <input type="number" id="income-input"
+                        class="bg-transparent text-xl font-bold w-32 focus:outline-none text-white" value="2800">
+                </div>
+                <div id="balance-card" class="p-3 rounded-lg border bg-green-600 border-green-500 transition-colors">
+                    <label class="text-xs text-white/80 block mb-1">Current Balance</label>
+                    <div class="text-xl font-bold">RM <span id="overall-balance">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overview Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <!-- Commitments Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 border-t-4 border-t-red-500">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h3 class="text-slate-500 font-medium text-sm">Commitments (41%)</h3>
+                        <div class="text-2xl font-bold text-slate-800">RM <span id="total-commitments">0</span></div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400">Budget</div>
+                        <div class="text-sm font-semibold text-slate-600">RM <span id="budget-commitments">0</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 rounded-full h-2.5 mt-2">
+                    <div id="progress-commitments" class="h-2.5 rounded-full transition-all duration-500 bg-red-500"
+                        style="width: 0%"></div>
+                </div>
+                <div class="mt-2 text-xs text-slate-400 text-right">
+                    <span id="balance-commitments-val">0</span> <span id="balance-commitments-text">remaining</span>
+                </div>
+            </div>
+
+            <!-- Savings Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 border-t-4 border-t-green-500">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h3 class="text-slate-500 font-medium text-sm">Savings (36%)</h3>
+                        <div class="text-2xl font-bold text-slate-800">RM <span id="total-savings">0</span></div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400">Target</div>
+                        <div class="text-sm font-semibold text-slate-600">RM <span id="budget-savings">0</span></div>
+                    </div>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 rounded-full h-2.5 mt-2">
+                    <div id="progress-savings" class="h-2.5 rounded-full transition-all duration-500 bg-green-500"
+                        style="width: 0%"></div>
+                </div>
+                <div class="mt-2 text-xs text-slate-400 text-right">
+                    <span id="balance-savings-val">0</span> <span id="balance-savings-text">to go</span>
+                </div>
+            </div>
+
+            <!-- Expenses Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 border-t-4 border-t-blue-500">
+                <div class="flex justify-between items-start mb-2">
+                    <div>
+                        <h3 class="text-slate-500 font-medium text-sm">Belanja (23%)</h3>
+                        <div class="text-2xl font-bold text-slate-800">RM <span id="total-expenses">0</span></div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400">Budget</div>
+                        <div class="text-sm font-semibold text-slate-600">RM <span id="budget-expenses">0</span></div>
+                    </div>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-100 rounded-full h-2.5 mt-2">
+                    <div id="progress-expenses" class="h-2.5 rounded-full transition-all duration-500 bg-blue-500"
+                        style="width: 0%"></div>
+                </div>
+                <div class="mt-2 text-xs text-slate-400 text-right">
+                    <span id="balance-expenses-val">0</span> <span id="balance-expenses-text">available</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- LEFT COLUMN: Commitments & Savings List -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Commitments Detail -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="p-2 rounded-lg bg-red-500">
+                            <i data-lucide="credit-card" class="text-white w-5 h-5"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800">Fixed Commitments</h2>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+                                <tr>
+                                    <th class="px-4 py-3">Paid?</th>
+                                    <th class="px-4 py-3">Item</th>
+                                    <th class="px-4 py-3 text-right">Amount (RM)</th>
+                                    <th class="w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="commitments-list" class="divide-y divide-slate-100">
+                                <!-- JS will populate this -->
+                            </tbody>
+                        </table>
+                        <button onclick="addCommitment()"
+                            class="w-full mt-4 py-2 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-sm font-medium cursor-pointer">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Add New Commitment
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Savings Detail -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="p-2 rounded-lg bg-green-500">
+                            <i data-lucide="piggy-bank" class="text-white w-5 h-5"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800">Savings Allocation</h2>
+                    </div>
+
+                    <div id="savings-list" class="space-y-4">
+                        <!-- JS will populate this -->
+                    </div>
+
+                    <button onclick="addSavings()"
+                        class="w-full mt-4 py-2 border-2 border-dashed border-slate-200 rounded-lg text-slate-400 hover:text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-sm font-medium cursor-pointer">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add New Saving
+                    </button>
+                </div>
+
+                <!-- Graphs -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="p-2 rounded-lg bg-indigo-500">
+                            <i data-lucide="trending-up" class="text-white w-5 h-5"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800">Financial Analysis</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 h-64">
+                        <div class="relative w-full h-full flex items-center justify-center">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                        <div class="relative w-full h-full">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN: Expenses Log -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 h-full flex flex-col">
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="p-2 rounded-lg bg-blue-500">
+                            <i data-lucide="wallet" class="text-white w-5 h-5"></i>
+                        </div>
+                        <h2 class="text-lg font-bold text-slate-800">Daily Expenses</h2>
+                    </div>
+
+                    <!-- Add New Transaction Form -->
+                    <form id="transaction-form" class="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
+                        <h4 class="text-sm font-bold text-slate-700 mb-3">Add Transaction</h4>
+                        <div class="space-y-3">
+                            <input type="text" id="t-item" placeholder="Item (e.g. Nasi Lemak)"
+                                class="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" required>
+                            <div class="flex gap-2">
+                                <input type="number" id="t-amount" placeholder="RM Amount"
+                                    class="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500" required
+                                    step="0.01">
+                                <select id="t-category"
+                                    class="text-sm px-2 py-2 border rounded focus:outline-blue-500 bg-white">
+                                    <option>Makan</option>
+                                    <option>Belanja</option>
+                                    <option>Hutang</option>
+                                    <option>Minyak</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <input type="date" id="t-date"
+                                class="w-full text-sm px-3 py-2 border rounded focus:outline-blue-500 bg-white">
+                            <button type="submit"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded flex items-center justify-center gap-2 transition-colors cursor-pointer">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Add Log
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Transaction List -->
+                    <div id="transactions-list" class="flex-1 overflow-y-auto max-h-[500px] space-y-3 pr-2">
+                        <!-- JS will populate -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        const state = {
+            income: 2800,
+            allocations: { commitments: 0.41, savings: 0.36, expenses: 0.23 },
+            commitments: [
+                { id: 1, name: 'Messbill', amount: 0, paid: false },
+                { id: 2, name: 'Parents', amount: 0, paid: false },
+                { id: 3, name: 'Netflix/spotify', amount: 0, paid: false },
+                { id: 4, name: 'Topup Maxis', amount: 0, paid: false },
+                { id: 5, name: 'Kereta (saga)', amount: 0, paid: false },
+                { id: 6, name: 'Insurance (saga)', amount: 0, paid: false },
+                { id: 7, name: 'Services (saga)', amount: 0, paid: false },
+                { id: 8, name: 'Spaylater', amount: 0, paid: false },
+            ],
+            savings: [
+                { id: 1, name: 'ASB', amount: 0 },
+                { id: 2, name: 'Gold', amount: 0 },
+                { id: 3, name: 'Tabung Haji', amount: 0 },
+            ],
+            transactions: []
+        };
+
+        // Date init
+        document.getElementById('t-date').valueAsDate = new Date();
+
+        // Chart Instances
+        let pieChartInstance = null;
+        let barChartInstance = null;
+
+        // --- RENDER LOGIC ---
+
+        function render() {
+            // 1. Calculations
+            const budget = {
+                commitments: Math.round(state.income * state.allocations.commitments),
+                savings: Math.round(state.income * state.allocations.savings),
+                expenses: Math.round(state.income * state.allocations.expenses)
+            };
+
+            const totals = {
+                commitments: state.commitments.reduce((acc, c) => acc + (Number(c.amount) || 0), 0),
+                savings: state.savings.reduce((acc, c) => acc + (Number(c.amount) || 0), 0),
+                expenses: state.transactions.reduce((acc, c) => acc + (Number(c.amount) || 0), 0),
+            };
+            totals.grandTotal = totals.commitments + totals.savings + totals.expenses;
+
+            const balances = {
+                commitments: budget.commitments - totals.commitments,
+                savings: budget.savings - totals.savings,
+                expenses: budget.expenses - totals.expenses,
+                overall: state.income - totals.grandTotal
+            };
+
+            // 2. Update Header & Cards UI
+            document.getElementById('income-input').value = state.income;
+
+            // Overall Balance
+            const balanceEl = document.getElementById('overall-balance');
+            const balanceCard = document.getElementById('balance-card');
+            balanceEl.textContent = balances.overall.toLocaleString();
+            if (balances.overall >= 0) {
+                balanceCard.classList.remove('bg-red-600', 'border-red-500');
+                balanceCard.classList.add('bg-green-600', 'border-green-500');
+            } else {
+                balanceCard.classList.remove('bg-green-600', 'border-green-500');
+                balanceCard.classList.add('bg-red-600', 'border-red-500');
+            }
+
+            // Commitments Card
+            updateCardUI('commitments', totals.commitments, budget.commitments, balances.commitments, 'remaining', 'over budget');
+            // Savings Card
+            updateCardUI('savings', totals.savings, budget.savings, balances.savings, 'to go', 'above target');
+            // Expenses Card
+            updateCardUI('expenses', totals.expenses, budget.expenses, balances.expenses, 'available', 'overspent');
+
+            // 3. Render Lists
+            renderCommitments();
+            renderSavings();
+            renderTransactions();
+
+            // 4. Update Charts
+            updateCharts(totals, budget);
+
+            // 5. Re-init icons
+            lucide.createIcons();
+        }
+
+        function updateCardUI(type, current, max, balance, posText, negText) {
+            document.getElementById(`total-${type}`).textContent = current;
+            document.getElementById(`budget-${type}`).textContent = max;
+            document.getElementById(`balance-${type}-val`).textContent = Math.abs(balance);
+            document.getElementById(`balance-${type}-text`).textContent = balance >= 0 ? posText : negText;
+
+            const pct = Math.min(100, Math.max(0, (current / max) * 100));
+            document.getElementById(`progress-${type}`).style.width = `${pct}%`;
+        }
+
+        function renderCommitments() {
+            const list = document.getElementById('commitments-list');
+            list.innerHTML = '';
+            state.commitments.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors group";
+                tr.innerHTML = `
+                    <td class="px-4 py-3">
+                        <button onclick="toggleCommitment(${item.id})" class="transition-colors ${item.paid ? 'text-green-500' : 'text-slate-300 hover:text-slate-400'}">
+                            <i data-lucide="${item.paid ? 'check-circle-2' : 'circle'}" class="w-6 h-6"></i>
+                        </button>
+                    </td>
+                    <td class="px-4 py-3">
+                        <input type="text" onchange="updateCommitmentName(${item.id}, this.value)" 
+                            class="bg-transparent border-b border-transparent focus:border-slate-300 focus:outline-none w-full font-medium ${item.paid ? 'text-slate-400 line-through' : 'text-slate-700'}"
+                            value="${item.name}">
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <input type="number" onchange="updateCommitmentAmount(${item.id}, this.value)" placeholder="0"
+                            class="w-24 text-right bg-slate-50 border border-slate-200 rounded px-2 py-1 focus:outline-blue-500"
+                            value="${item.amount === 0 ? '' : item.amount}">
+                    </td>
+                    <td class="px-2 text-center">
+                        <button onclick="deleteCommitment(${item.id})" class="text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100" title="Remove">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                list.appendChild(tr);
+            });
+        }
+
+        function renderSavings() {
+            const list = document.getElementById('savings-list');
+            list.innerHTML = '';
+            state.savings.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:bg-slate-100 transition-colors group";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 w-full">
+                        <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 flex-shrink-0">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" onchange="updateSavingsName(${item.id}, this.value)"
+                            class="bg-transparent border-b border-transparent focus:border-slate-300 focus:outline-none w-full font-medium text-slate-700"
+                            value="${item.name}">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-400 text-sm">RM</span>
+                        <input type="number" onchange="updateSavingsAmount(${item.id}, this.value)" placeholder="0"
+                            class="w-24 text-right bg-white border border-slate-200 rounded px-2 py-1 focus:outline-green-500"
+                            value="${item.amount === 0 ? '' : item.amount}">
+                        <button onclick="deleteSavings(${item.id})" class="text-slate-300 hover:text-red-500 ml-2 transition-colors opacity-0 group-hover:opacity-100">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function renderTransactions() {
+            const list = document.getElementById('transactions-list');
+            list.innerHTML = '';
+            if (state.transactions.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-10 text-slate-400">
+                        <i data-lucide="alert-circle" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                        <p class="text-sm">No transactions yet.</p>
+                    </div>`;
+                return;
+            }
+
+            state.transactions.slice().reverse().forEach(t => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center p-3 bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md transition-shadow group";
+                div.innerHTML = `
+                    <div>
+                        <div class="font-semibold text-slate-800 text-sm">${t.item}</div>
+                        <div class="text-xs text-slate-500 flex gap-2">
+                            <span>${t.date}</span>
+                            <span class="text-blue-500 font-medium">${t.category}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-slate-700">RM ${t.amount.toFixed(2)}</span>
+                        <button onclick="deleteTransaction(${t.id})" class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function updateCharts(totals, budget) {
+            // PIE CHART
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            const pieData = [totals.commitments, totals.savings, totals.expenses];
+
+            if (pieChartInstance) {
+                pieChartInstance.data.datasets[0].data = pieData;
+                pieChartInstance.update();
+            } else {
+                pieChartInstance = new Chart(pieCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Commitments', 'Savings', 'Belanja'],
+                        datasets: [{
+                            data: pieData,
+                            backgroundColor: ['#ef4444', '#22c55e', '#3b82f6'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+
+            // BAR CHART
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            const barLabels = ['Commitments', 'Savings', 'Belanja'];
+            const budgetData = [budget.commitments, budget.savings, budget.expenses];
+            const actualData = [totals.commitments, totals.savings, totals.expenses];
+
+            if (barChartInstance) {
+                barChartInstance.data.datasets[0].data = budgetData;
+                barChartInstance.data.datasets[1].data = actualData;
+                barChartInstance.update();
+            } else {
+                barChartInstance = new Chart(barCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: barLabels,
+                        datasets: [
+                            { label: 'Budget', data: budgetData, backgroundColor: '#cbd5e1', borderRadius: 4 },
+                            { label: 'Actual', data: actualData, backgroundColor: '#4f46e5', borderRadius: 4 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true } },
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+        }
+
+        // --- HANDLERS ---
+
+        // Income
+        document.getElementById('income-input').addEventListener('input', (e) => {
+            state.income = Number(e.target.value);
+            render();
+        });
+
+        // Commitments
+        window.toggleCommitment = (id) => {
+            const c = state.commitments.find(x => x.id === id);
+            if (c) c.paid = !c.paid;
+            render();
+        };
+        window.updateCommitmentName = (id, val) => {
+            const c = state.commitments.find(x => x.id === id);
+            if (c) c.name = val;
+        };
+        window.updateCommitmentAmount = (id, val) => {
+            const c = state.commitments.find(x => x.id === id);
+            if (c) c.amount = Number(val);
+            render();
+        };
+        window.deleteCommitment = (id) => {
+            state.commitments = state.commitments.filter(c => c.id !== id);
+            render();
+        };
+        window.addCommitment = () => {
+            const newId = state.commitments.length > 0 ? Math.max(...state.commitments.map(c => c.id)) + 1 : 1;
+            state.commitments.push({ id: newId, name: 'New Commitment', amount: 0, paid: false });
+            render();
+        };
+
+        // Savings
+        window.updateSavingsName = (id, val) => {
+            const s = state.savings.find(x => x.id === id);
+            if (s) s.name = val;
+        };
+        window.updateSavingsAmount = (id, val) => {
+            const s = state.savings.find(x => x.id === id);
+            if (s) s.amount = Number(val);
+            render();
+        };
+        window.deleteSavings = (id) => {
+            state.savings = state.savings.filter(s => s.id !== id);
+            render();
+        };
+        window.addSavings = () => {
+            const newId = state.savings.length > 0 ? Math.max(...state.savings.map(s => s.id)) + 1 : 1;
+            state.savings.push({ id: newId, name: 'New Goal', amount: 0 });
+            render();
+        };
+
+        // Transactions
+        document.getElementById('transaction-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const item = document.getElementById('t-item').value;
+            const amount = document.getElementById('t-amount').value;
+            const category = document.getElementById('t-category').value;
+            const date = document.getElementById('t-date').value;
+
+            if (!item || !amount) return;
+
+            state.transactions.push({
+                id: Date.now(),
+                item,
+                amount: parseFloat(amount),
+                category,
+                date: date || new Date().toISOString().split('T')[0]
+            });
+
+            // Reset form inputs
+            document.getElementById('t-item').value = '';
+            document.getElementById('t-amount').value = '';
+
+            render();
+        });
+
+        window.deleteTransaction = (id) => {
+            state.transactions = state.transactions.filter(t => t.id !== id);
+            render();
+        };
+
+        // Init
+        render();
+
+    </script>
+</body>
+
+</html>
